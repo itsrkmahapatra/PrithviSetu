@@ -1,1 +1,0 @@
-import{j as t}from"./index-r84aD5do.js";import{M as e,T as r}from"./map-CTlEpID6.js";import"./globe-C5qrqlVf.js";function p(){return t.jsx(e,{center:[0,0],zoom:2,style:{height:"100vh",width:"100%"},children:t.jsx(r,{url:"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"})})}export{p as default};
