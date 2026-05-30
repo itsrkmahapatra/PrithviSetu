@@ -4,7 +4,7 @@ import { useLocation } from '../store/LocationContext';
 import axios from 'axios';
 import SearchBar from './SearchBar';
 import WeatherTab from './WeatherTab';
-import AIReport from './AIReport';
+import PlaceInsights from './PlaceInsights';
 import AboutModal from './AboutModal';
 
 export default function Globe3D() {
@@ -20,12 +20,12 @@ export default function Globe3D() {
         }, 100);
     };
     window.addEventListener('resize', handleResize);
-    
+
     if (globeEl.current) {
         const controls = globeEl.current.controls();
         controls.autoRotate = false;
         controls.enableDamping = true;
-        
+
         // Listen to zoom to transition to 2D map
         controls.addEventListener('change', () => {
           if (!globeEl.current) return;
@@ -37,7 +37,7 @@ export default function Globe3D() {
           }
         });
     }
-    
+
     return () => window.removeEventListener('resize', handleResize);
   }, [setIs3D, setViewCenter]);
 
@@ -82,14 +82,14 @@ export default function Globe3D() {
 
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-black">
-      
+
       {/* Floating Search Bar (Top Left) */}
       <div className="absolute top-4 left-4 z-[1000] w-[calc(100%-4rem)] md:w-96 shadow-lg rounded-lg bg-white flex items-center">
         <SearchBar onSelect={() => {}} />
       </div>
 
       {/* Info/About Button (Top Right) */}
-      <button 
+      <button
         onClick={() => setIsAboutOpen(true)}
         className="absolute top-4 right-32 z-[1000] bg-white p-2.5 rounded-full shadow-lg hover:bg-gray-100 border border-gray-200 text-blue-600 transition-colors"
         title="About PrithviSetu Features"
@@ -103,7 +103,7 @@ export default function Globe3D() {
       <AboutModal isOpen={isAboutOpen} onClose={() => setIsAboutOpen(false)} />
 
       {/* Locate Me Button */}
-      <button 
+      <button
         onClick={locateMe}
         className="absolute bottom-24 right-3 z-[1000] bg-white p-2 rounded-md shadow-md hover:bg-gray-100 border border-gray-200"
         title="Locate Me"
@@ -139,11 +139,11 @@ export default function Globe3D() {
         <div className="absolute bottom-0 left-0 w-full md:w-96 md:bottom-auto md:top-20 md:left-4 bg-white z-[1000] rounded-t-2xl md:rounded-2xl shadow-[0_-4px_10px_rgba(0,0,0,0.1)] md:shadow-xl transition-transform duration-300 transform max-h-[85vh] overflow-y-auto">
           <div className="p-5 flex flex-col relative">
             <button onClick={closePanel} className="absolute top-4 right-4 text-gray-400 hover:text-gray-800">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>   
             </button>
 
             <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-2 md:hidden"></div>
-            
+
             <h2 className="text-xl font-bold text-gray-800 leading-tight pr-6">{loc.name}</h2>
             <div className="text-sm text-gray-600 flex items-center gap-2 mb-2">
                <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/></svg>
@@ -163,12 +163,12 @@ export default function Globe3D() {
                 Share
               </button>
             </div>
-            
+
             <hr className="my-2 border-gray-200" />
-            
+
             <WeatherTab loc={loc} />
-            <AIReport loc={loc} />
-            
+            <PlaceInsights loc={loc} />
+
           </div>
         </div>
       )}

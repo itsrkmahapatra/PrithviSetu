@@ -6,7 +6,7 @@ import SearchBar from './SearchBar';
 import axios from 'axios';
 import L from 'leaflet';
 import WeatherTab from './WeatherTab';
-import AIReport from './AIReport';
+import PlaceInsights from './PlaceInsights';
 import AboutModal from './AboutModal';
 
 // Fix Leaflet default marker icon issue in React
@@ -196,7 +196,7 @@ export default function MapView() {
             </div>
             <hr className="my-2 border-gray-200" />
             <WeatherTab loc={loc} />
-            <AIReport loc={loc} />
+            <PlaceInsights loc={loc} />
           </div>
         </div>
       )}
