@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, useMap, LayersControl, Popup, Polyline, ZoomControl } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents, LayersControl, Popup, Polyline, ZoomControl } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useLocation } from '../store/LocationContext';
 import SearchBar from './SearchBar';
@@ -21,6 +21,26 @@ function MapController({ center, zoom }) {
   useEffect(() => {
     if (center) map.flyTo(center, zoom, { duration: 1.5 });
   }, [center, zoom, map]);
+  return null;
+}
+
+function MapClickHandler({ setLoc, setRoute }) {
+  useMapEvents({
+    click: async (e) => {
+      const { lat, lng } = e.latlng;
+      let name = "Pinned Location";
+      try {
+        const res = await axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+        if (res.data && res.data.display_name) {
+          name = res.data.display_name;
+        }
+      } catch (error) {
+        console.error("Reverse geocoding failed", error);
+      }
+      setLoc({ lat, lon: lng, name });
+      setRoute(null);
+    }
+  });
   return null;
 }
 
@@ -114,6 +134,7 @@ export default function MapView() {
 
         <MapController center={center} zoom={zoom} />
         <ZoomControl position="bottomright" />
+        <MapClickHandler setLoc={setLoc} setRoute={setRoute} />
         
         {loc && (
           <Marker position={[loc.lat, loc.lon]}>
