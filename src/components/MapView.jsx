@@ -25,7 +25,7 @@ function MapController({ center, zoom }) {
   return null;
 }
 
-function MapClickHandler({ setLoc, setRoute }) {
+function MapEventHandler({ setLoc, setRoute, setIs3D }) {
   useMapEvents({
     click: async (e) => {
       const { lat, lng } = e.latlng;
@@ -40,6 +40,13 @@ function MapClickHandler({ setLoc, setRoute }) {
       }
       setLoc({ lat, lon: lng, name });
       setRoute(null);
+    },
+    zoomend: (e) => {
+      const zoom = e.target.getZoom();
+      // Transition back to 3D Globe when zoomed out far
+      if (zoom < 4) {
+          setIs3D(true);
+      }
     }
   });
   return null;
@@ -69,14 +76,14 @@ function LocateControl({ setLoc, setUserPos }) {
 }
 
 export default function MapView() {
-  const { loc, setLoc } = useLocation();
+  const { loc, setLoc, setIs3D, viewCenter } = useLocation();
   const [route, setRoute] = useState(null);
   const [userPos, setUserPos] = useState(null);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
 
-  // Default to a broad view (India roughly) if no location
-  const center = loc ? [loc.lat, loc.lon] : [20.5937, 78.9629]; 
-  const zoom = loc ? 14 : 5;
+  // Initialize from context values
+  const center = loc ? [loc.lat, loc.lon] : (viewCenter ? [viewCenter.lat, viewCenter.lng] : [20.5937, 78.9629]); 
+  const zoom = loc ? 14 : (viewCenter ? viewCenter.zoom : 5);
 
   const getDirections = async () => {
     if (!loc) return;
@@ -85,7 +92,6 @@ export default function MapView() {
         const { latitude, longitude } = pos.coords;
         setUserPos([latitude, longitude]);
         try {
-          // OSRM expects lon,lat for coordinates
           const res = await axios.get(`https://router.project-osrm.org/route/v1/driving/${longitude},${latitude};${loc.lon},${loc.lat}?overview=full&geometries=geojson`);
           if (res.data.routes && res.data.routes[0]) {
             const coords = res.data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
@@ -103,7 +109,6 @@ export default function MapView() {
     }
   };
 
-  // Close details panel
   const closePanel = () => {
       setLoc(null);
       setRoute(null);
@@ -111,13 +116,10 @@ export default function MapView() {
 
   return (
     <div className="relative w-screen h-screen overflow-hidden">
-      
-      {/* Floating Search Bar (Top Left) */}
       <div className="absolute top-4 left-4 z-[1000] w-[calc(100%-4rem)] md:w-96 shadow-lg rounded-lg bg-white flex items-center">
         <SearchBar onSelect={() => setRoute(null)} />
       </div>
 
-      {/* Info/About Button (Top Right) */}
       <button 
         onClick={() => setIsAboutOpen(true)}
         className="absolute top-4 right-4 z-[1000] bg-white p-2.5 rounded-full shadow-lg hover:bg-gray-100 border border-gray-200 text-blue-600 transition-colors"
@@ -128,12 +130,9 @@ export default function MapView() {
         </svg>
       </button>
 
-      {/* About Modal */}
       <AboutModal isOpen={isAboutOpen} onClose={() => setIsAboutOpen(false)} />
 
-      {/* Main Map */}
       <MapContainer center={center} zoom={zoom} style={{ height: '100vh', width: '100%' }} zoomControl={false}>
-
         <LayersControl position="bottomleft">
           <LayersControl.BaseLayer checked name="Map">
             <TileLayer
@@ -151,7 +150,7 @@ export default function MapView() {
 
         <MapController center={center} zoom={zoom} />
         <ZoomControl position="bottomright" />
-        <MapClickHandler setLoc={setLoc} setRoute={setRoute} />
+        <MapEventHandler setLoc={setLoc} setRoute={setRoute} setIs3D={setIs3D} />
         
         {loc && (
           <Marker position={[loc.lat, loc.lon]}>
@@ -170,22 +169,18 @@ export default function MapView() {
         <LocateControl setLoc={setLoc} setUserPos={setUserPos} />
       </MapContainer>
 
-      {/* Bottom/Side Detail Panel */}
       {loc && (
         <div className="absolute bottom-0 left-0 w-full md:w-96 md:bottom-auto md:top-20 md:left-4 bg-white z-[1000] rounded-t-2xl md:rounded-2xl shadow-[0_-4px_10px_rgba(0,0,0,0.1)] md:shadow-xl transition-transform duration-300 transform max-h-[85vh] overflow-y-auto">
           <div className="p-5 flex flex-col relative">
             <button onClick={closePanel} className="absolute top-4 right-4 text-gray-400 hover:text-gray-800">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
-
             <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-2 md:hidden"></div>
-            
             <h2 className="text-xl font-bold text-gray-800 leading-tight pr-6">{loc.name}</h2>
             <div className="text-sm text-gray-600 flex items-center gap-2 mb-2">
                <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/></svg>
                {loc.lat.toFixed(4)}, {loc.lon.toFixed(4)}
             </div>
-
             <div className="flex gap-3 mt-1 mb-2">
               <button onClick={getDirections} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-full flex items-center justify-center gap-2 transition shadow-sm text-sm">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
@@ -199,12 +194,9 @@ export default function MapView() {
                 Share
               </button>
             </div>
-            
             <hr className="my-2 border-gray-200" />
-            
             <WeatherTab loc={loc} />
             <AIReport loc={loc} />
-            
           </div>
         </div>
       )}
