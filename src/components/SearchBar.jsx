@@ -21,7 +21,7 @@ export default function SearchBar({ onSelect }) {
   }
 
   const select = (r) => {
-    setLoc({ lat: r.lat, lon: r.lon, name: r.display_name })
+    setLoc({ lat: parseFloat(r.lat), lon: parseFloat(r.lon), name: r.display_name })
     setQ(''); setRes([])
     onSelect()
   }
