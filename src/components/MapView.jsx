@@ -7,6 +7,7 @@ import axios from 'axios';
 import L from 'leaflet';
 import WeatherTab from './WeatherTab';
 import AIReport from './AIReport';
+import AboutModal from './AboutModal';
 
 // Fix Leaflet default marker icon issue in React
 delete L.Icon.Default.prototype._getIconUrl;
@@ -71,6 +72,7 @@ export default function MapView() {
   const { loc, setLoc } = useLocation();
   const [route, setRoute] = useState(null);
   const [userPos, setUserPos] = useState(null);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
 
   // Default to a broad view (India roughly) if no location
   const center = loc ? [loc.lat, loc.lon] : [20.5937, 78.9629]; 
@@ -111,12 +113,27 @@ export default function MapView() {
     <div className="relative w-screen h-screen overflow-hidden">
       
       {/* Floating Search Bar (Top Left) */}
-      <div className="absolute top-4 left-4 z-[1000] w-[calc(100%-2rem)] md:w-96 shadow-lg rounded-lg bg-white">
+      <div className="absolute top-4 left-4 z-[1000] w-[calc(100%-4rem)] md:w-96 shadow-lg rounded-lg bg-white flex items-center">
         <SearchBar onSelect={() => setRoute(null)} />
       </div>
 
+      {/* Info/About Button (Top Right) */}
+      <button 
+        onClick={() => setIsAboutOpen(true)}
+        className="absolute top-4 right-4 z-[1000] bg-white p-2.5 rounded-full shadow-lg hover:bg-gray-100 border border-gray-200 text-blue-600 transition-colors"
+        title="About PrithviSetu Features"
+      >
+        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+        </svg>
+      </button>
+
+      {/* About Modal */}
+      <AboutModal isOpen={isAboutOpen} onClose={() => setIsAboutOpen(false)} />
+
       {/* Main Map */}
       <MapContainer center={center} zoom={zoom} style={{ height: '100vh', width: '100%' }} zoomControl={false}>
+
         <LayersControl position="bottomleft">
           <LayersControl.BaseLayer checked name="Map">
             <TileLayer
