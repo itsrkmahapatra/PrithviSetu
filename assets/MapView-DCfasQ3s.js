@@ -1,1 +1,0 @@
-import{n as e,t}from"./map-Ckyi-624.js";import{t as n}from"./index-ChRoG1lV.js";var r=n(),i=()=>(0,r.jsx)(e,{center:[28.61,77.23],zoom:13,style:{height:`500px`,width:`100%`},children:(0,r.jsx)(t,{url:`https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png`})});export{i as default};
