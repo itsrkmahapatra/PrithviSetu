@@ -28,10 +28,16 @@ export default function SearchBar({ onSelect }) {
 
   return (
     <div className="relative">
-      <input value={q} onChange={e=>search(e.target.value)} 
+      <input 
+        id="search-location"
+        name="search-location"
+        value={q} 
+        onChange={e=>search(e.target.value)} 
         className="w-full p-3 rounded-lg bg-white/90 backdrop-blur"
-        placeholder="Search any village, city, country..." />
-      {res.length > 0 && <div className="absolute top-14 w-full bg-white rounded-lg shadow-lg">
+        placeholder="Search any village, city, country..." 
+        autoComplete="off"
+      />
+      {res.length > 0 && <div className="absolute top-14 w-full bg-white rounded-lg shadow-lg overflow-hidden">
         {res.map(r => <div key={r.place_id} onClick={()=>select(r)} 
           className="p-2 hover:bg-gray-100 cursor-pointer text-sm">{r.display_name}</div>)}
       </div>}
