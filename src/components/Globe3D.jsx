@@ -15,7 +15,6 @@ export default function Globe3D() {
 
   useEffect(() => {
     const handleResize = () => {
-        // Debounce resize to prevent glitches
         setTimeout(() => {
             setDimensions({ width: window.innerWidth, height: window.innerHeight });
         }, 100);
@@ -23,9 +22,18 @@ export default function Globe3D() {
     window.addEventListener('resize', handleResize);
     
     if (globeEl.current) {
-        // Disable auto-rotation as requested by user
-        globeEl.current.controls().autoRotate = false;
-        globeEl.current.controls().enableDamping = true;
+        const controls = globeEl.current.controls();
+        controls.autoRotate = false;
+        controls.enableDamping = true;
+        
+        // Listen to zoom to transition to 2D map
+        controls.addEventListener('change', () => {
+          const pov = globeEl.current.pointOfView();
+          if (pov.altitude < 0.6) {
+             setViewCenter({ lat: pov.lat, lng: pov.lng, zoom: 6 });
+             setIs3D(false);
+          }
+        });
     }
     
     return () => window.removeEventListener('resize', handleResize);
