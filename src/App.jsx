@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { HashRouter, Routes, Route } from 'react-router-dom'
 import { Suspense, lazy } from 'react'
 import { LocationProvider } from './store/LocationContext'
 import Globe from './components/Globe'
@@ -8,7 +8,7 @@ const MapView = lazy(() => import('./components/MapView'))
 export default function App() {
   return (
     <LocationProvider>
-      <BrowserRouter>
+      <HashRouter>
         <Routes>
           <Route path="/" element={<Globe />} />
           <Route path="/map" element={
@@ -17,7 +17,7 @@ export default function App() {
             </Suspense>
           } />
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
     </LocationProvider>
   )
 }

@@ -9,10 +9,15 @@ export default function Globe() {
 
   useEffect(() => {
     let phi = 0
+    let width = 0
+    const onResize = () => canvasRef.current && (width = canvasRef.current.offsetWidth)
+    window.addEventListener('resize', onResize)
+    onResize()
+    
     const globe = createGlobe(canvasRef.current, {
       devicePixelRatio: 2,
-      width: window.innerWidth * 2,
-      height: window.innerHeight * 2,
+      width: width * 2,
+      height: width * 2,
       phi: 0,
       theta: 0.3,
       dark: 1,
@@ -26,14 +31,20 @@ export default function Globe() {
       onRender: (state) => {
         state.phi = phi
         phi += 0.005
+        state.width = width * 2
+        state.height = width * 2
       }
     })
-    return () => globe.destroy() // CRITICAL: PURGE MEMORY
+
+    return () => {
+      window.removeEventListener('resize', onResize)
+      globe.destroy() // CRITICAL: Prevents WebGLProgram leak
+    }
   }, [])
 
   return (
-    <div className="relative">
-      <canvas ref={canvasRef} id="globe" className="w-screen h-screen" />
+    <div className="relative w-screen h-screen bg-black">
+      <canvas ref={canvasRef} className="w-full h-full" />
       <div className="absolute top-4 left-1/2 -translate-x-1/2 w-11/12 max-w-lg">
         <SearchBar onSelect={() => navigate('/map')} />
       </div>
