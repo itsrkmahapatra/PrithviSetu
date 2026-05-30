@@ -17,6 +17,7 @@
   "dependencies": {
     "axios": "1.7.2",
     "chart.js": "4.4.3",
+    "cobe": "0.6.3",
     "fzstd": "0.1.1",
     "jspdf": "2.5.1",
     "leaflet": "1.9.4",
