@@ -1,0 +1,19 @@
+{
+  "name": "prithvisetu",
+  "private": false,
+  "version": "1.0.0",
+  "type": "module",
+  "author": "Raj Kishor Mahapatra <raj @example.com>",
+  "license": "MIT",
+  "description": "PrithviSetu: Har Sthaan Ka Setu - Bridge to Every Place on Earth",
+  "homepage": "https://prithvisetu.com",
+  "repository": "https://github.com/prithvisetu/prithvisetu",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "npm run build && gh-pages -d dist"
+  },
+  "dependencies": { "react": "18.3.1", "react-dom": "18.3.1", "react-router-dom": "6.23.1", "leaflet": "1.9.4", "react-leaflet": "4.2.1", "cobe": "0.6.3", "axios": "1.7.2", "chart.js": "4.4.3", "react-chartjs-2": "5.2.0", "jspdf": "2.5.1", "localforage": "1.10.0", "fzstd": "0.1.1" },
+  "devDependencies": { "@vitejs/plugin-react": "4.3.1", "tailwindcss": "3.4.4", "postcss": "8.4.38", "autoprefixer": "10.4.19", "gh-pages": "6.1.1", "terser": "5.31.1" }
+}
