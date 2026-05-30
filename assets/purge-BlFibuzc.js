@@ -1,0 +1,1 @@
+var e=(...e)=>{e.forEach(e=>e(null))};export{e as t};
