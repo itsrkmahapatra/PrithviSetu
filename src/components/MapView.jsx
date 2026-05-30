@@ -65,7 +65,7 @@ function LocateControl({ setLoc, setUserPos }) {
             alert("Could not find your location. Please ensure location services are enabled.");
         });
       }}
-      className="absolute bottom-24 right-3 z-[1000] bg-white p-2 rounded-md shadow-md hover:bg-gray-100 border border-gray-200"
+      className="absolute bottom-24 right-3 z-[1000] bg-white p-2 rounded-md shadow-md hover:bg-gray-100 border border-gray-200 transition-all"
       title="Locate Me"
     >
       <svg className="w-6 h-6 text-gray-700" fill="currentColor" viewBox="0 0 24 24">
@@ -80,6 +80,7 @@ export default function MapView() {
   const [route, setRoute] = useState(null);
   const [userPos, setUserPos] = useState(null);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isRouting, setIsRouting] = useState(false);
 
   // Initialize from context values
   const center = loc ? [loc.lat, loc.lon] : (viewCenter ? [viewCenter.lat, viewCenter.lng] : [20.5937, 78.9629]); 
@@ -87,25 +88,33 @@ export default function MapView() {
 
   const getDirections = async () => {
     if (!loc) return;
+    setIsRouting(true);
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(async (pos) => {
         const { latitude, longitude } = pos.coords;
         setUserPos([latitude, longitude]);
         try {
+          // OSRM expects lon,lat for coordinates
           const res = await axios.get(`https://router.project-osrm.org/route/v1/driving/${longitude},${latitude};${loc.lon},${loc.lat}?overview=full&geometries=geojson`);
           if (res.data.routes && res.data.routes[0]) {
             const coords = res.data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
             setRoute(coords);
+          } else {
+              alert("No route found between these locations.");
           }
         } catch (e) {
           console.error("Routing failed", e);
           alert("Failed to fetch directions from OSRM.");
+        } finally {
+            setIsRouting(false);
         }
       }, () => {
         alert("Please enable location access to get directions.");
+        setIsRouting(false);
       });
     } else {
         alert("Geolocation is not supported by your browser.");
+        setIsRouting(false);
     }
   };
 
@@ -115,19 +124,18 @@ export default function MapView() {
   }
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden">
-      <div className="absolute top-4 left-4 z-[1000] w-[calc(100%-4rem)] md:w-96 shadow-lg rounded-lg bg-white flex items-center">
+    <div className="relative w-screen h-screen overflow-hidden animate-fade-in">
+      {/* Floating UI Container */}
+      <div className="absolute top-4 left-4 z-[1000] w-[calc(100%-8rem)] md:w-96 flex gap-2">
         <SearchBar onSelect={() => setRoute(null)} />
       </div>
 
       <button 
         onClick={() => setIsAboutOpen(true)}
-        className="absolute top-4 right-4 z-[1000] bg-white p-2.5 rounded-full shadow-lg hover:bg-gray-100 border border-gray-200 text-blue-600 transition-colors"
-        title="About PrithviSetu Features"
+        className="absolute top-4 right-4 z-[1000] bg-white/90 backdrop-blur-md p-3 rounded-2xl shadow-xl hover:bg-white border border-white/50 text-blue-600 transition-all active:scale-95"
+        title="PrithviSetu Insights"
       >
-        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-        </svg>
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
       </button>
 
       <AboutModal isOpen={isAboutOpen} onClose={() => setIsAboutOpen(false)} />
@@ -143,7 +151,7 @@ export default function MapView() {
           <LayersControl.BaseLayer name="Satellite">
             <TileLayer
               url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-              attribution='&copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+              attribution='&copy; Esri'
             />
           </LayersControl.BaseLayer>
         </LayersControl>
@@ -154,47 +162,60 @@ export default function MapView() {
         
         {loc && (
           <Marker position={[loc.lat, loc.lon]}>
-            <Popup>{loc.name}</Popup>
+            <Popup className="custom-popup">
+                <span className="font-bold">{loc.name}</span>
+            </Popup>
           </Marker>
         )}
 
         {userPos && route && (
           <Marker position={userPos}>
-            <Popup>Your Location</Popup>
+            <Popup>Current Location</Popup>
           </Marker>
         )}
 
-        {route && <Polyline positions={route} color="#3b82f6" weight={6} opacity={0.8} />}
+        {route && <Polyline positions={route} color="#3b82f6" weight={7} opacity={0.8} lineJoin="round" />}
 
         <LocateControl setLoc={setLoc} setUserPos={setUserPos} />
       </MapContainer>
 
+      {/* Side/Bottom Glass Panel */}
       {loc && (
-        <div className="absolute bottom-0 left-0 w-full md:w-96 md:bottom-auto md:top-20 md:left-4 bg-white z-[1000] rounded-t-2xl md:rounded-2xl shadow-[0_-4px_10px_rgba(0,0,0,0.1)] md:shadow-xl transition-transform duration-300 transform max-h-[85vh] overflow-y-auto">
-          <div className="p-5 flex flex-col relative">
-            <button onClick={closePanel} className="absolute top-4 right-4 text-gray-400 hover:text-gray-800">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        <div className="absolute bottom-0 left-0 w-full md:w-96 md:bottom-auto md:top-20 md:left-4 bg-white/90 backdrop-blur-xl z-[1000] rounded-t-3xl md:rounded-3xl shadow-2xl border border-white/50 transition-all duration-500 animate-slide-up max-h-[75vh] overflow-y-auto custom-scrollbar">
+          <div className="p-6 flex flex-col relative">
+            <button onClick={closePanel} className="absolute top-4 right-4 p-2 bg-gray-100 text-gray-400 rounded-xl hover:text-red-500 transition-all active:scale-90">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
-            <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-2 md:hidden"></div>
-            <h2 className="text-xl font-bold text-gray-800 leading-tight pr-6">{loc.name}</h2>
-            <div className="text-sm text-gray-600 flex items-center gap-2 mb-2">
-               <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/></svg>
-               {loc.lat.toFixed(4)}, {loc.lon.toFixed(4)}
+            
+            <div className="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-6 md:hidden"></div>
+            
+            <h2 className="text-2xl font-black text-slate-900 leading-tight pr-8">{loc.name.split(',')[0]}</h2>
+            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 mb-6 flex items-center gap-2">
+               <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+               Coordinates: {loc.lat.toFixed(4)}, {loc.lon.toFixed(4)}
             </div>
-            <div className="flex gap-3 mt-1 mb-2">
-              <button onClick={getDirections} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-full flex items-center justify-center gap-2 transition shadow-sm text-sm">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+
+            <div className="flex gap-3 mb-6">
+              <button 
+                onClick={getDirections} 
+                disabled={isRouting}
+                className={`flex-1 ${isRouting ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'} text-white font-bold py-3.5 px-4 rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-blue-200 text-sm`}
+              >
+                {isRouting ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+                )}
                 Directions
               </button>
               <button onClick={() => {
                   navigator.clipboard.writeText(window.location.href);
-                  alert("Link copied!");
-              }} className="flex-1 bg-gray-100 hover:bg-gray-200 text-blue-700 font-medium py-2 px-4 rounded-full flex items-center justify-center gap-2 transition shadow-sm border border-gray-200 text-sm">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
-                Share
+                  alert("Location link copied!");
+              }} className="p-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl flex items-center justify-center transition-all active:scale-95 border border-slate-200">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
               </button>
             </div>
-            <hr className="my-2 border-gray-200" />
+            
             <WeatherTab loc={loc} />
             <PlaceInsights loc={loc} />
           </div>
