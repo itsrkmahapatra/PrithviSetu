@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
+import { INDIA_STATES, WORLD_COUNTRIES } from '../utils/localData';
 
 export default function PlaceInsights({ loc }) {
   const [data, setData] = useState({
@@ -29,10 +30,17 @@ export default function PlaceInsights({ loc }) {
 
       try {
         const res = await axios.get(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${loc.lat}&lon=${loc.lon}&addressdetails=1&accept-language=en`);
-        results.address = res.data.address;
+        const addr = res.data.address;
         
-        const langMap = { 'in': 'Hindi, English, ' + (res.data.address.state || 'Regional'), 'us': 'English', 'gb': 'English', 'fr': 'French' };
-        results.address.local_language = langMap[res.data.address.country_code] || 'Local Native Language';
+        // Enrichment with Local Data
+        const stateInfo = INDIA_STATES[addr.state] || {};
+        const countryInfo = WORLD_COUNTRIES[addr.country_code] || {};
+        
+        addr.local_language = stateInfo.lang || countryInfo.lang || 'Regional Language';
+        addr.std_code = stateInfo.std || countryInfo.code || 'N/A';
+        addr.capital = stateInfo.capital || 'N/A';
+
+        results.address = addr;
       } catch (e) { console.error("Address fetch failed"); }
 
       try {
