@@ -54,19 +54,55 @@ function MapEventHandler({ setLoc, setRoute, setIs3D }) {
 
 function LocateControl({ setLoc, setUserPos }) {
   const map = useMap();
+  
+  const handleLocate = () => {
+    if (!("geolocation" in navigator)) {
+      alert("Geolocation is not supported by your browser.");
+      return;
+    }
+
+    const options = {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0
+    };
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude, accuracy } = pos.coords;
+        console.log(`Located with accuracy: ${accuracy} meters`);
+        
+        map.flyTo([latitude, longitude], 16);
+        setUserPos([latitude, longitude]);
+        
+        let name = "Your Location";
+        try {
+          const res = await axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+          if (res.data && res.data.display_name) {
+            name = res.data.display_name;
+          }
+        } catch (error) {
+          console.error("Reverse geocoding failed", error);
+        }
+        
+        setLoc({ lat: latitude, lon: longitude, name });
+      },
+      (err) => {
+        let msg = "Could not find your location.";
+        if (err.code === 1) msg = "Location access denied. Please enable GPS permissions.";
+        else if (err.code === 2) msg = "Position unavailable. Check your network or GPS signal.";
+        else if (err.code === 3) msg = "Location request timed out. Please try again.";
+        alert(msg);
+      },
+      options
+    );
+  };
+
   return (
     <button 
-      onClick={() => {
-        map.locate().on('locationfound', function(e) {
-          map.flyTo(e.latlng, 15);
-          setUserPos([e.latlng.lat, e.latlng.lng]);
-          setLoc({ lat: e.latlng.lat, lon: e.latlng.lng, name: "Your Location" });
-        }).on('locationerror', function(e) {
-            alert("Could not find your location. Please ensure location services are enabled.");
-        });
-      }}
+      onClick={handleLocate}
       className="absolute bottom-24 right-3 z-[1000] bg-white p-2 rounded-md shadow-md hover:bg-gray-100 border border-gray-200 transition-all"
-      title="Locate Me"
+      title="Locate Me (High Accuracy)"
     >
       <svg className="w-6 h-6 text-gray-700" fill="currentColor" viewBox="0 0 24 24">
         <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
