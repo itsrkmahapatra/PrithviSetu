@@ -9,12 +9,15 @@ export default function SearchBar({ onSelect }) {
   const [isFocused, setIsFocused] = useState(false)
   const { setLoc } = useLocation()
 
-  const handleSearch = async (queryValue) => {
+  const handleSearch = async (queryValue, autoSelectFirst = false) => {
     const v = queryValue || q;
     if (v.length < 3) return;
     try {
       const { data } = await axios.get(`https://nominatim.openstreetmap.org/search?format=json&q=${v}&limit=5`)
       setRes(data)
+      if (autoSelectFirst && data.length > 0) {
+        select(data[0]);
+      }
     } catch { setRes([]) }
   }
 
@@ -41,7 +44,15 @@ export default function SearchBar({ onSelect }) {
           onChange={e=>search(e.target.value)} 
           onFocus={() => setIsFocused(true)}
           onBlur={() => setTimeout(() => setIsFocused(false), 200)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              if (res.length > 0) {
+                select(res[0]);
+              } else {
+                handleSearch(q, true);
+              }
+            }
+          }}
           className="w-full py-2 pl-4 bg-transparent focus:outline-none text-gray-800 font-medium placeholder-gray-400"
           placeholder="Search PrithviSetu..." 
           autoComplete="off"

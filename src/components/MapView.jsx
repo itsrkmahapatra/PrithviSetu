@@ -125,8 +125,8 @@ export default function MapView() {
 
   return (
     <div className="relative w-screen h-screen overflow-hidden animate-fade-in">
-      {/* Floating UI Container */}
-      <div className="absolute top-4 left-4 z-[1000] w-[calc(100%-8rem)] md:w-96 flex gap-2">
+      {/* Floating UI Container (Top Right) */}
+      <div className="absolute top-4 right-16 z-[1000] w-[calc(100%-10rem)] md:w-96 flex gap-2">
         <SearchBar onSelect={() => setRoute(null)} />
       </div>
 
