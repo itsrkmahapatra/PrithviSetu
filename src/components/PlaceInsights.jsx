@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { INDIA_STATES, WORLD_COUNTRIES } from '../utils/localData';
+import { INDIA_STATES, WORLD_COUNTRIES, DISTRICT_DIRECTORY } from '../utils/localData';
 
 export default function PlaceInsights({ loc }) {
   const [data, setData] = useState({
@@ -14,6 +14,7 @@ export default function PlaceInsights({ loc }) {
   const [activeTab, setActiveTab] = useState('profile');
   const [expandedCards, setExpandedCards] = useState({
       profile: true,
+      governance: true,
       time: true,
       nearby: true,
       geo: true
@@ -35,10 +36,15 @@ export default function PlaceInsights({ loc }) {
         // Enrichment with Local Data
         const stateInfo = INDIA_STATES[addr.state] || {};
         const countryInfo = WORLD_COUNTRIES[addr.country_code] || {};
+        const districtKey = addr.city || addr.town || addr.district;
+        const governanceInfo = DISTRICT_DIRECTORY[districtKey] || {};
         
         addr.local_language = stateInfo.lang || countryInfo.lang || 'Regional Language';
         addr.std_code = stateInfo.std || countryInfo.code || 'N/A';
         addr.capital = stateInfo.capital || 'N/A';
+        addr.dm = governanceInfo.dm || "N/A (Updating Directory)";
+        addr.mp = governanceInfo.mp || "N/A (Updating Directory)";
+        addr.mla = governanceInfo.mla || "N/A (Updating Directory)";
 
         results.address = addr;
       } catch (e) { console.error("Address fetch failed"); }
@@ -93,12 +99,20 @@ export default function PlaceInsights({ loc }) {
                     <div className="grid grid-cols-1 gap-y-4">
                         <InfoRow label="Locality Name" value={addr.suburb || addr.neighbourhood || addr.village} />
                         <InfoRow label="Tehsil / Sub-District" value={addr.county || addr.district} />
+                        <InfoRow label="District Magistrate (DM)" value={addr.dm} />
+                        <div className="grid grid-cols-2 gap-4">
+                            <InfoRow label="Assembly MLA" value={addr.mla} />
+                            <InfoRow label="Parliament MP" value={addr.mp} />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 py-3 border-y border-slate-50">
+                            <InfoRow label="Assembly Seats" value={stateInfo.assembly_seats} />
+                            <InfoRow label="Parliament Seats" value={stateInfo.parliament_seats} />
+                        </div>
                         <InfoRow label="District / City" value={addr.city || addr.district} />
                         <InfoRow label="State / Province" value={addr.state} />
                         <InfoRow label="Language" value={addr.local_language} />
                         <InfoRow label="Pin Code" value={addr.postcode} />
-                        <InfoRow label="Telephone / STD Code" value={addr.country_code === 'in' ? "+91" : "Local Code"} />
-                        <div className="pt-3 mt-1 border-t border-slate-50 italic text-[10px] text-slate-400 font-medium">Political divisions (Constituency/MLA) are derived from District data.</div>
+                        <InfoRow label="Telephone / STD Code" value={addr.std_code} />
                     </div>
                 </CollapsibleCard>
                 
