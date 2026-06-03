@@ -1,15 +1,16 @@
 import { useEffect, useRef } from 'react'
+// @ts-ignore - Assuming cobe doesn't have readily available types
 import createGlobe from 'cobe'
 import { useNavigate } from 'react-router-dom'
-import SearchBar from './SearchBar'
+import SearchBar from './SearchBar.tsx'
 
 export default function Globe() {
-  const canvasRef = useRef()
+  const canvasRef = useRef<HTMLCanvasElement>(null)
   const navigate = useNavigate()
 
   useEffect(() => {
     let phi = 0
-    let globe;
+    let globe: any;
     let width = 0;
 
     const initGlobe = () => {
@@ -33,7 +34,7 @@ export default function Globe() {
         baseColor: [0.04, 0.23, 0.56],
         markerColor: [1, 0.6, 0.2],
         glowColor: [0.04, 0.23, 0.56],
-        onRender: (state) => {
+        onRender: (state: any) => {
           state.phi = phi
           phi += 0.005
           if (canvasRef.current) {

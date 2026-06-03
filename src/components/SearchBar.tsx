@@ -1,19 +1,27 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import axios from 'axios'
 import { useLocation } from '../store/LocationContext'
 
-let timeout
-export default function SearchBar({ onSelect }) {
-  const [q, setQ] = useState('')
-  const [res, setRes] = useState([])
-  const [isFocused, setIsFocused] = useState(false)
-  const { setLoc } = useLocation()
+interface SearchResult {
+  place_id: number;
+  lat: string;
+  lon: string;
+  display_name: string;
+}
 
-  const handleSearch = async (queryValue, autoSelectFirst = false) => {
+export default function SearchBar({ onSelect }: { onSelect: () => void }) {
+  const [q, setQ] = useState<string>('')
+  const [res, setRes] = useState<SearchResult[]>([])
+  const [isFocused, setIsFocused] = useState<boolean>(false)
+  const { setLoc } = useLocation()
+  
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  const handleSearch = async (queryValue?: string, autoSelectFirst = false) => {
     const v = queryValue || q;
     if (v.length < 3) return;
     try {
-      const { data } = await axios.get(`https://nominatim.openstreetmap.org/search?format=json&q=${v}&limit=5`)
+      const { data } = await axios.get<SearchResult[]>(`https://nominatim.openstreetmap.org/search?format=json&q=${v}&limit=5`)
       setRes(data)
       if (autoSelectFirst && data.length > 0) {
         select(data[0]);
@@ -21,14 +29,16 @@ export default function SearchBar({ onSelect }) {
     } catch { setRes([]) }
   }
 
-  const search = (v) => {
+  const search = (v: string) => {
     setQ(v)
-    clearTimeout(timeout)
+    if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+    }
     if (v.length < 3) return setRes([])
-    timeout = setTimeout(() => handleSearch(v), 300)
+    timeoutRef.current = setTimeout(() => handleSearch(v), 300)
   }
 
-  const select = (r) => {
+  const select = (r: SearchResult) => {
     setLoc({ lat: parseFloat(r.lat), lon: parseFloat(r.lon), name: r.display_name })
     setQ(''); setRes([])
     onSelect()

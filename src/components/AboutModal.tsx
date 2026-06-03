@@ -1,4 +1,9 @@
-export default function AboutModal({ isOpen, onClose }) {
+interface AboutModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function AboutModal({ isOpen, onClose }: AboutModalProps) {
   if (!isOpen) return null;
 
   return (

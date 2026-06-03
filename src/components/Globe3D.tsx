@@ -1,16 +1,22 @@
 import React, { useRef, useEffect, useState } from 'react';
+// @ts-ignore
 import Globe from 'react-globe.gl';
 import { useLocation } from '../store/LocationContext';
 import axios from 'axios';
-import SearchBar from './SearchBar';
-import WeatherTab from './WeatherTab';
-import PlaceInsights from './PlaceInsights';
-import AboutModal from './AboutModal';
+import SearchBar from './SearchBar.tsx';
+import WeatherTab from './WeatherTab.tsx';
+import PlaceInsights from './PlaceInsights.tsx';
+import AboutModal from './AboutModal.tsx';
+
+interface Dimensions {
+  width: number;
+  height: number;
+}
 
 export default function Globe3D() {
-  const globeEl = useRef();
+  const globeEl = useRef<any>();
   const { loc, setLoc, setIs3D, setViewCenter } = useLocation();
-  const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
+  const [dimensions, setDimensions] = useState<Dimensions>({ width: window.innerWidth, height: window.innerHeight });
   const [isAboutOpen, setIsAboutOpen] = useState(false);
 
   useEffect(() => {
@@ -49,7 +55,7 @@ export default function Globe3D() {
 
   const marker = loc ? [{ lat: loc.lat, lng: loc.lon, name: loc.name }] : [];
 
-  const handleGlobeClick = async (coords) => {
+  const handleGlobeClick = async (coords: { lat: number, lng: number }) => {
     try {
         const res = await axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lng}`);
         const name = (res.data && res.data.display_name) ? res.data.display_name : "Pinned Location";
@@ -123,9 +129,9 @@ export default function Globe3D() {
           bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
           backgroundColor="#000000"
           labelsData={marker}
-          labelLat={d => d.lat}
-          labelLng={d => d.lng}
-          labelText={d => d.name}
+          labelLat={(d: any) => d.lat}
+          labelLng={(d: any) => d.lng}
+          labelText={(d: any) => d.name}
           labelSize={1.5}
           labelDotRadius={0.5}
           labelColor={() => 'rgba(255, 165, 0, 1)'}
