@@ -34,7 +34,7 @@ jobs:
           echo "}" >> main.js
           echo "app.whenReady().then(createWindow);" >> main.js
           
-          Copy-Item -Path '../public/favicon.ico' -Destination 'icon.ico'
+          Copy-Item -Path '../logo.png' -Destination 'icon.ico'
           node -e "const fs = require('fs'); const pkg = JSON.parse(fs.readFileSync('package.json')); pkg.main = 'main.js'; pkg.author = 'Raj Kishor Mahapatra'; pkg.build = { appId: 'com.itsrkmahapatra.prithvisetu', productName: 'PrithviSetu', win: { target: 'nsis', icon: 'icon.ico' } }; fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
           
           npx electron-builder --win
