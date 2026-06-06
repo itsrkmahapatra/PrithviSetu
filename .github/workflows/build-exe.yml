@@ -29,13 +29,13 @@ jobs:
           
           echo "const { app, BrowserWindow } = require('electron');" > main.js
           echo "function createWindow() {" >> main.js
-          echo "  const win = new BrowserWindow({ width: 1280, height: 800, autoHideMenuBar: true, icon: 'icon.ico' });" >> main.js
+          echo "  const win = new BrowserWindow({ width: 1280, height: 800, autoHideMenuBar: true, icon: 'icon.png' });" >> main.js
           echo "  win.loadURL('https://prithvisetu.com');" >> main.js
           echo "}" >> main.js
           echo "app.whenReady().then(createWindow);" >> main.js
           
-          Copy-Item -Path '../logo.png' -Destination 'icon.ico'
-          node -e "const fs = require('fs'); const pkg = JSON.parse(fs.readFileSync('package.json')); pkg.main = 'main.js'; pkg.author = 'Raj Kishor Mahapatra'; pkg.build = { appId: 'com.itsrkmahapatra.prithvisetu', productName: 'PrithviSetu', win: { target: 'nsis', icon: 'icon.ico' } }; fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
+          Copy-Item -Path '../logo.png' -Destination 'icon.png'
+          node -e "const fs = require('fs'); const pkg = JSON.parse(fs.readFileSync('package.json')); pkg.main = 'main.js'; pkg.author = 'Raj Kishor Mahapatra'; pkg.build = { appId: 'com.itsrkmahapatra.prithvisetu', productName: 'PrithviSetu', win: { target: 'nsis', icon: 'icon.png' } }; fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
           
           npx electron-builder --win
 
