@@ -1,0 +1,22 @@
+﻿=========================================
+REDDIT TITLE OPTIONS:
+1. Show r/webdev: PrithviSetu — An interactive WebGL 3D Globe & Leaflet map visualizer with offline caching
+2. How I built a responsive geographic interface using React, Vite, and Three.js globes
+3. Integrating Leaflet maps and 3D WebGL globes with keyless weather APIs in React
+=========================================
+
+Hey r/webdev!
+
+I built **PrithviSetu**, an open-source WebGL-powered 3D Globe and Leaflet mapping hub featuring offline map caching and automated geographical weather analysis.
+
+### Features
+- **Dual Visualizer:** Seamless transitions between a high-performance 3D WebGL Globe (`react-globe.gl`) and a detailed 2D Leaflet map.
+- **Offline Caching:** Caches tiles locally using `localforage` for offline navigation.
+- **Keyless Architecture:** Fetches data from Nominatim (geocoding) and Open-Meteo (forecasts) without needing API keys.
+- **AI Geopolitical Reports:** Integrates Pollinations.AI for geographic descriptions.
+
+I'd love to know what you think about this dual-pane layout approach and any ideas on optimizing WebGL texture loadings on mobile viewports.
+
+Check out the code here: https://github.com/itsrkmahapatra/PrithviSetu
+
+Thanks!
