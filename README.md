@@ -1,4 +1,4 @@
-﻿# ✍️ PrithviSetu
+# ✍️ PrithviSetu
 
 A WebGL-powered universal place visualizer featuring interactive 3D globes, Leaflet maps, offline caching, and automated AI research reports.
 
@@ -65,5 +65,5 @@ Contributions are extremely welcome! Please check out [CONTRIBUTING.md](.github/
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
 
 ## 📥 Download Application
-- [🖥️ Windows Download (.exe)](https://github.com/itsrkmahapatra/PrithviSetu/releases/download/v1.0.0/PrithviSetu.exe)
-- [📱 Android Download (.apk)](https://github.com/itsrkmahapatra/PrithviSetu/releases/download/v1.0.0/PrithviSetu.apk)
+- [🖥️ Windows Download (.exe)](https://github.com/itsrkmahapatra/PrithviSetu/releases/latest
+- [📱 Android Download (.apk)](https://github.com/itsrkmahapatra/PrithviSetu/releases/latest
