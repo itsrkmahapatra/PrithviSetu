@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useLocation } from '../store/LocationContext';
 import PlaceInsights from './PlaceInsights';
 import AboutModal from './AboutModal';
+import { fetchWeather } from '../services/api/weather';
 
 interface SearchResult {
   place_id: number;
@@ -63,6 +64,7 @@ export default function GoogleMapsUI({
   const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
 
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const weatherTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Sync end input with selected loc when directions open
   useEffect(() => {
@@ -72,27 +74,34 @@ export default function GoogleMapsUI({
     }
   }, [loc, setRouteEnd]);
 
-  // Fetch weather summary dynamically for viewCenter or loc
+  // Fetch weather summary dynamically using cached service and 1-decimal rounding to prevent API spam
   useEffect(() => {
-    const lat = loc?.lat || viewCenter?.lat || 20.5937;
-    const lon = loc?.lon || viewCenter?.lng || 78.9629;
-    let isMounted = true;
-    axios.get(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code`)
-      .then(res => {
-        if (!isMounted || !res.data?.current) return;
-        const temp = Math.round(res.data.current.temperature_2m);
-        const code = res.data.current.weather_code;
-        let icon = '🌤️';
-        if (code === 0) icon = '☀️';
-        else if (code >= 1 && code <= 3) icon = '⛅';
-        else if (code >= 50 && code <= 69) icon = '🌧️';
-        else if (code >= 70 && code <= 79) icon = '❄️';
-        else if (code >= 90) icon = '⛈️';
-        setWeatherText(`${temp}°C ${icon}`);
-      })
-      .catch(() => {});
-    return () => { isMounted = false; };
-  }, [loc, viewCenter]);
+    const rawLat = loc?.lat || viewCenter?.lat || 20.5937;
+    const rawLon = loc?.lon || viewCenter?.lng || 78.9629;
+    const roundedLat = Math.round(rawLat * 5) / 5; // Round to ~20km grid
+    const roundedLon = Math.round(rawLon * 5) / 5;
+
+    if (weatherTimeoutRef.current) clearTimeout(weatherTimeoutRef.current);
+    weatherTimeoutRef.current = setTimeout(async () => {
+      try {
+        const data = await fetchWeather(roundedLat, roundedLon);
+        if (data && data.current) {
+          const temp = Math.round(data.current.temperature_2m);
+          let icon = '🌤️';
+          if (data.current.rain > 0) icon = '🌧️';
+          else if (temp > 30) icon = '☀️';
+          else if (temp < 15) icon = '❄️';
+          setWeatherText(`${temp}°C ${icon}`);
+        }
+      } catch (e) {
+        // Ignore silent weather fetch failures
+      }
+    }, 1500);
+
+    return () => {
+      if (weatherTimeoutRef.current) clearTimeout(weatherTimeoutRef.current);
+    };
+  }, [loc?.lat, loc?.lon, Math.round((viewCenter?.lat || 0) * 5), Math.round((viewCenter?.lng || 0) * 5)]);
 
   // Autocomplete Search
   const handleSearchChange = (val: string) => {

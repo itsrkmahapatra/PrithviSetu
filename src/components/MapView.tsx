@@ -43,9 +43,15 @@ function MapController({ center, zoom }: { center: any, zoom: number }) {
   const map = useMap();
   useEffect(() => {
     if (center && typeof center.lat === 'number' && typeof center.lng === 'number') {
-      map.flyTo([center.lat, center.lng], zoom, { duration: 1.2 });
+      const currentCenter = map.getCenter();
+      const dist = map.distance(currentCenter, [center.lat, center.lng]);
+      const zoomDiff = Math.abs(map.getZoom() - zoom);
+      // Only flyTo if center changed significantly (> 50 meters) or zoom changed
+      if (dist > 50 || zoomDiff > 0.5) {
+        map.flyTo([center.lat, center.lng], zoom, { duration: 1.2 });
+      }
     }
-  }, [center, zoom, map]);
+  }, [center?.lat, center?.lng, zoom, map]);
   return null;
 }
 
@@ -73,13 +79,19 @@ function MapEventHandler({ setLoc, setIs3D, setViewCenter }: { setLoc: any, setI
         setViewCenter({ lat: center.lat, lng: center.lng, zoom: currentZoom });
         setIs3D(true);
       } else {
-        setViewCenter({ lat: center.lat, lng: center.lng, zoom: currentZoom });
+        setViewCenter((prev: any) => {
+          if (prev && Math.abs(prev.lat - center.lat) < 0.005 && Math.abs(prev.lng - center.lng) < 0.005 && prev.zoom === currentZoom) return prev;
+          return { lat: center.lat, lng: center.lng, zoom: currentZoom };
+        });
       }
     },
     moveend: () => {
       const center = map.getCenter();
       const currentZoom = map.getZoom();
-      setViewCenter({ lat: center.lat, lng: center.lng, zoom: currentZoom });
+      setViewCenter((prev: any) => {
+        if (prev && Math.abs(prev.lat - center.lat) < 0.005 && Math.abs(prev.lng - center.lng) < 0.005 && prev.zoom === currentZoom) return prev;
+        return { lat: center.lat, lng: center.lng, zoom: currentZoom };
+      });
     }
   });
   return null;

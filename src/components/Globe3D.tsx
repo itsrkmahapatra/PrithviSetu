@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
 // @ts-ignore
 import Globe from 'react-globe.gl';
 import { useLocation } from '../store/LocationContext';
@@ -16,6 +16,11 @@ export default function Globe3D() {
   const [dimensions, setDimensions] = useState<Dimensions>({ width: window.innerWidth, height: window.innerHeight });
   const [globeReady, setGlobeReady] = useState(false);
 
+  // Refs to prevent infinite camera loop (`pointOfView` <-> `controls.change`)
+  const isProgrammaticCameraMove = useRef(false);
+  const lastAnimatedCoords = useRef<{ lat: number; lon: number } | null>(null);
+  const cameraDebounceRef = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
     const handleResize = () => {
       setTimeout(() => {
@@ -23,10 +28,10 @@ export default function Globe3D() {
       }, 100);
     };
     window.addEventListener('resize', handleResize);
-
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Configure globe controls carefully so rotating/panning never creates infinite loop
   useEffect(() => {
     if (!globeReady || !globeEl.current) return;
     try {
@@ -35,28 +40,39 @@ export default function Globe3D() {
         controls.autoRotate = false;
         controls.enableDamping = true;
 
-        const handleCameraChange = () => {
-          if (!globeEl.current) return;
+        // Use 'end' event or debounced 'change' so we don't fire 60 times/sec during mouse drag/spin
+        const handleCameraEnd = () => {
+          if (!globeEl.current || isProgrammaticCameraMove.current) return;
           const pov = globeEl.current.pointOfView();
           if (pov && typeof pov.lat === 'number' && typeof pov.lng === 'number') {
             if (pov.altitude < 0.6) {
               setViewCenter({ lat: pov.lat, lng: pov.lng, zoom: 8 });
               setIs3D(false);
             } else {
-              setViewCenter((prev: any) => ({
-                lat: pov.lat,
-                lng: pov.lng,
-                zoom: prev?.zoom || 5
-              }));
+              if (cameraDebounceRef.current) clearTimeout(cameraDebounceRef.current);
+              cameraDebounceRef.current = setTimeout(() => {
+                setViewCenter((prev: any) => {
+                  // Only update if moved by more than 0.05 degrees to prevent micro-looping
+                  if (prev && Math.abs(prev.lat - pov.lat) < 0.05 && Math.abs(prev.lng - pov.lng) < 0.05) {
+                    return prev;
+                  }
+                  return {
+                    lat: pov.lat,
+                    lng: pov.lng,
+                    zoom: prev?.zoom || 5
+                  };
+                });
+              }, 300);
             }
           }
         };
 
-        controls.addEventListener('change', handleCameraChange);
+        controls.addEventListener('end', handleCameraEnd);
         return () => {
           if (controls && controls.removeEventListener) {
-            controls.removeEventListener('change', handleCameraChange);
+            controls.removeEventListener('end', handleCameraEnd);
           }
+          if (cameraDebounceRef.current) clearTimeout(cameraDebounceRef.current);
         };
       }
     } catch (e) {
@@ -64,23 +80,47 @@ export default function Globe3D() {
     }
   }, [globeReady, setIs3D, setViewCenter]);
 
+  // Handle programmatically animating to loc or initial viewCenter without fighting user or looping
   useEffect(() => {
     if (!globeReady || !globeEl.current) return;
     try {
-      if (loc && typeof loc.lat === 'number' && typeof loc.lon === 'number') {
-        globeEl.current.pointOfView({ lat: loc.lat, lng: loc.lon, altitude: 1.5 }, 1000);
-      } else if (viewCenter && typeof viewCenter.lat === 'number' && typeof viewCenter.lng === 'number') {
-        globeEl.current.pointOfView({ lat: viewCenter.lat, lng: viewCenter.lng, altitude: 2.0 }, 1000);
+      const targetLat = loc ? loc.lat : (viewCenter?.lat || 20.5937);
+      const targetLon = loc ? loc.lon : (viewCenter?.lng || 78.9629);
+
+      // Check if we already animated to these coordinates to avoid re-triggering loop
+      if (lastAnimatedCoords.current &&
+          Math.abs(lastAnimatedCoords.current.lat - targetLat) < 0.02 &&
+          Math.abs(lastAnimatedCoords.current.lon - targetLon) < 0.02) {
+        return;
       }
+
+      // Check if current pointOfView is already close to target
+      const currentPov = globeEl.current.pointOfView();
+      if (currentPov &&
+          Math.abs(currentPov.lat - targetLat) < 0.05 &&
+          Math.abs(currentPov.lng - targetLon) < 0.05) {
+        return;
+      }
+
+      isProgrammaticCameraMove.current = true;
+      lastAnimatedCoords.current = { lat: targetLat, lon: targetLon };
+      globeEl.current.pointOfView({ lat: targetLat, lng: targetLon, altitude: loc ? 1.5 : 2.0 }, 1000);
+
+      setTimeout(() => {
+        isProgrammaticCameraMove.current = false;
+      }, 1200);
     } catch (e) {
       console.warn("pointOfView warning:", e);
+      isProgrammaticCameraMove.current = false;
     }
   }, [globeReady, loc, viewCenter]);
 
-  const allMarkers = [
-    ...(loc ? [{ lat: loc.lat, lng: loc.lon, name: loc.name, isMain: true }] : []),
-    ...(categoryMarkers || [])
-  ];
+  const allMarkers = useMemo(() => {
+    return [
+      ...(loc ? [{ lat: loc.lat, lng: loc.lon, name: loc.name, isMain: true }] : []),
+      ...(categoryMarkers || [])
+    ];
+  }, [loc, categoryMarkers]);
 
   const handleGlobeClick = async (coords: { lat: number, lng: number }) => {
     try {
