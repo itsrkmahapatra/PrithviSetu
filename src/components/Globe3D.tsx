@@ -115,7 +115,7 @@ export default function Globe3D() {
   };
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-black font-sans">
+    <div className="relative w-screen h-screen overflow-hidden bg-black font-sans" style={{ width: '100vw', height: '100vh' }}>
       
       {/* Floating Header Controls Container */}
       <div className="absolute top-4 left-4 right-4 z-[1000] flex justify-between items-center pointer-events-none gap-3">
@@ -167,7 +167,7 @@ export default function Globe3D() {
       </button>
 
       {/* 3D Globe Canvas */}
-      <div className="absolute inset-0 z-0 cursor-move">
+      <div className="absolute inset-0 z-0 cursor-move" style={{ width: '100vw', height: '100vh' }}>
         <Globe
           ref={globeEl}
           width={dimensions.width}

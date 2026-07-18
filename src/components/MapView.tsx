@@ -164,7 +164,7 @@ export default function MapView() {
   };
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden animate-fade-in font-sans">
+    <div className="relative w-screen h-screen overflow-hidden animate-fade-in font-sans" style={{ width: '100vw', height: '100vh' }}>
       
       {/* Floating Header Controls Container */}
       <div className="absolute top-4 left-4 right-4 z-[1000] flex justify-between items-center pointer-events-none gap-3">

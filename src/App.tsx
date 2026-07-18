@@ -12,7 +12,7 @@ function MainApp() {
   return (
     <>
       <ErrorBoundary onSwitchTo2D={() => setIs3D(false)}>
-        <Suspense fallback={<div className="text-white bg-black w-screen h-screen flex items-center justify-center">Loading Map Engine...</div>}>
+        <Suspense fallback={<div className="text-white bg-black w-screen h-screen flex items-center justify-center" style={{ width: '100vw', height: '100vh' }}>Loading Map Engine...</div>}>
           {is3D ? <Globe3D /> : <MapView />}
         </Suspense>
       </ErrorBoundary>
