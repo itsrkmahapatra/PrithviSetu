@@ -25,7 +25,7 @@ function MapController({ center, zoom }: { center: any, zoom: number }) {
   return null;
 }
 
-function MapEventHandler({ setLoc, setRoute, setIs3D }: { setLoc: any, setRoute: any, setIs3D: any }) {
+function MapEventHandler({ setLoc, setRoute, setIs3D, setViewCenter }: { setLoc: any, setRoute: any, setIs3D: any, setViewCenter: any }) {
   useMapEvents({
     click: async (e) => {
       const { lat, lng } = e.latlng;
@@ -41,8 +41,15 @@ function MapEventHandler({ setLoc, setRoute, setIs3D }: { setLoc: any, setRoute:
       setLoc({ lat, lon: lng, name });
       setRoute(null);
     },
-    zoomend: (e) => {
+    moveend: (e) => {
+      const center = e.target.getCenter();
       const zoom = e.target.getZoom();
+      setViewCenter({ lat: center.lat, lng: center.lng, zoom });
+    },
+    zoomend: (e) => {
+      const center = e.target.getCenter();
+      const zoom = e.target.getZoom();
+      setViewCenter({ lat: center.lat, lng: center.lng, zoom });
       if (zoom < 4) {
         setIs3D(true);
       }
@@ -111,7 +118,7 @@ function LocateControl({ setLoc, setUserPos }: { setLoc: any, setUserPos: any })
 }
 
 export default function MapView() {
-  const { loc, setLoc, setIs3D, viewCenter } = useLocation();
+  const { loc, setLoc, setIs3D, viewCenter, setViewCenter } = useLocation();
   const [route, setRoute] = useState<any>(null);
   const [userPos, setUserPos] = useState<any>(null);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
@@ -207,7 +214,7 @@ export default function MapView() {
 
         <MapController center={center} zoom={zoom} />
         <ZoomControl position="bottomright" />
-        <MapEventHandler setLoc={setLoc} setRoute={setRoute} setIs3D={setIs3D} />
+        <MapEventHandler setLoc={setLoc} setRoute={setRoute} setIs3D={setIs3D} setViewCenter={setViewCenter} />
         
         {loc && (
           <Marker position={[loc.lat, loc.lon]}>

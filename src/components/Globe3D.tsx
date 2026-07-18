@@ -15,9 +15,10 @@ interface Dimensions {
 
 export default function Globe3D() {
   const globeEl = useRef<any>();
-  const { loc, setLoc, setIs3D, setViewCenter } = useLocation();
+  const { loc, setLoc, setIs3D, viewCenter, setViewCenter } = useLocation();
   const [dimensions, setDimensions] = useState<Dimensions>({ width: window.innerWidth, height: window.innerHeight });
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [globeReady, setGlobeReady] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -27,30 +28,58 @@ export default function Globe3D() {
     };
     window.addEventListener('resize', handleResize);
 
-    if (globeEl.current) {
-      const controls = globeEl.current.controls();
-      controls.autoRotate = false;
-      controls.enableDamping = true;
-
-      // Listen to zoom to transition to 2D map when altitude is low
-      controls.addEventListener('change', () => {
-        if (!globeEl.current) return;
-        const pov = globeEl.current.pointOfView();
-        if (pov.altitude < 0.6) {
-          setViewCenter({ lat: pov.lat, lng: pov.lng, zoom: 8 });
-          setIs3D(false);
-        }
-      });
-    }
-
     return () => window.removeEventListener('resize', handleResize);
-  }, [setIs3D, setViewCenter]);
+  }, []);
 
   useEffect(() => {
-    if (loc && globeEl.current) {
-      globeEl.current.pointOfView({ lat: loc.lat, lng: loc.lon, altitude: 1.5 }, 1000);
+    if (!globeReady || !globeEl.current) return;
+    try {
+      const controls = globeEl.current.controls();
+      if (controls) {
+        controls.autoRotate = false;
+        controls.enableDamping = true;
+
+        const handleCameraChange = () => {
+          if (!globeEl.current) return;
+          const pov = globeEl.current.pointOfView();
+          if (pov && typeof pov.lat === 'number' && typeof pov.lng === 'number') {
+            if (pov.altitude < 0.6) {
+              setViewCenter({ lat: pov.lat, lng: pov.lng, zoom: 8 });
+              setIs3D(false);
+            } else {
+              setViewCenter((prev: any) => ({
+                lat: pov.lat,
+                lng: pov.lng,
+                zoom: prev?.zoom || 5
+              }));
+            }
+          }
+        };
+
+        controls.addEventListener('change', handleCameraChange);
+        return () => {
+          if (controls && controls.removeEventListener) {
+            controls.removeEventListener('change', handleCameraChange);
+          }
+        };
+      }
+    } catch (e) {
+      console.warn("Globe controls warning:", e);
     }
-  }, [loc]);
+  }, [globeReady, setIs3D, setViewCenter]);
+
+  useEffect(() => {
+    if (!globeReady || !globeEl.current) return;
+    try {
+      if (loc && typeof loc.lat === 'number' && typeof loc.lon === 'number') {
+        globeEl.current.pointOfView({ lat: loc.lat, lng: loc.lon, altitude: 1.5 }, 1000);
+      } else if (viewCenter && typeof viewCenter.lat === 'number' && typeof viewCenter.lng === 'number') {
+        globeEl.current.pointOfView({ lat: viewCenter.lat, lng: viewCenter.lng, altitude: 2.0 }, 1000);
+      }
+    } catch (e) {
+      console.warn("pointOfView warning:", e);
+    }
+  }, [globeReady, loc, viewCenter]);
 
   const marker = loc ? [{ lat: loc.lat, lng: loc.lon, name: loc.name }] : [];
 
@@ -143,8 +172,8 @@ export default function Globe3D() {
           ref={globeEl}
           width={dimensions.width}
           height={dimensions.height}
-          globeImageUrl="//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
-          bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
+          globeImageUrl="https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
+          bumpImageUrl="https://unpkg.com/three-globe/example/img/earth-topology.png"
           backgroundColor="#000000"
           labelsData={marker}
           labelLat={(d: any) => d.lat}
@@ -154,6 +183,7 @@ export default function Globe3D() {
           labelDotRadius={0.6}
           labelColor={() => 'rgba(255, 170, 0, 1)'}
           labelResolution={2}
+          onGlobeReady={() => setGlobeReady(true)}
           onGlobeClick={handleGlobeClick}
         />
       </div>
