@@ -129,7 +129,7 @@ export default function MapView() {
   return (
     <div className="relative w-screen h-screen overflow-hidden animate-fade-in font-sans" style={{ width: '100vw', height: '100vh' }}>
       
-      {/* 100% Authentic Google Maps UI Overlay */}
+      {/* PrithviSetu UI Overlay */}
       <GoogleMapsUI
         onZoomIn={() => mapInstance?.setZoom(Math.min((mapInstance.getZoom() || 5) + 1, 18))}
         onZoomOut={() => mapInstance?.setZoom(Math.max((mapInstance.getZoom() || 5) - 1, 2))}
@@ -145,7 +145,7 @@ export default function MapView() {
         ref={setMapInstance}
       >
         <LayersControl position="bottomleft">
-          <LayersControl.BaseLayer checked name="Google Standard / OSM">
+          <LayersControl.BaseLayer checked name="PrithviSetu Standard / OSM">
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution='&copy; OpenStreetMap contributors'

@@ -153,7 +153,7 @@ export default function Globe3D() {
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-black font-sans" style={{ width: '100vw', height: '100vh' }}>
       
-      {/* 100% Authentic Google Maps UI Overlay */}
+      {/* PrithviSetu UI Overlay */}
       <GoogleMapsUI onLocateMe={locateMe} />
 
       {/* 3D Globe Canvas */}

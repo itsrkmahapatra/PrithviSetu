@@ -266,7 +266,7 @@ export default function GoogleMapsUI({
                 selectSearchResult(searchResults[0]);
               }
             }}
-            placeholder="Search Google Maps or enter location..."
+            placeholder="Search PrithviSetu or enter location..."
             className="w-full bg-transparent text-sm text-[#202124] placeholder-[#70757a] focus:outline-none font-normal"
           />
 
@@ -351,7 +351,7 @@ export default function GoogleMapsUI({
           <span>{weatherText}</span>
         </div>
 
-        {/* Google Apps 9-Dots Menu (About PrithviSetu) */}
+        {/* Apps 9-Dots Menu (About PrithviSetu) */}
         <button
           onClick={() => setIsAboutOpen(true)}
           className="w-10 h-10 rounded-full bg-white/95 backdrop-blur-md shadow-[0_2px_6px_rgba(0,0,0,0.25)] border border-gray-200/60 text-[#5f6368] hover:text-[#202124] hover:bg-gray-50 flex items-center justify-center transition-all active:scale-95"
@@ -373,7 +373,7 @@ export default function GoogleMapsUI({
       </div>
 
       {/* ====================================================
-          3. GOOGLE MAPS DIRECTIONS DRAWER (WHEN OPEN)
+          3. PRITHVISETU DIRECTIONS DRAWER (WHEN OPEN)
          ==================================================== */}
       {isDirectionsOpen && (
         <div className="absolute top-16 left-3 right-3 sm:left-4 sm:top-20 sm:w-[408px] bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden pointer-events-auto z-[1060] animate-slide-up max-h-[82vh] flex flex-col">
@@ -478,7 +478,7 @@ export default function GoogleMapsUI({
             ) : (
               <div className="text-center py-8 text-gray-400 text-xs">
                 <span>📍</span>
-                <p className="mt-1">Select a starting location and destination above, then click Calculate to view full turn-by-turn Google Maps navigation.</p>
+                <p className="mt-1">Select a starting location and destination above, then click Calculate to view full turn-by-turn PrithviSetu navigation.</p>
               </div>
             )}
           </div>
@@ -486,7 +486,7 @@ export default function GoogleMapsUI({
       )}
 
       {/* ====================================================
-          4. GOOGLE MAPS PLACE DETAILS SIDEBAR (KNOWLEDGE PANEL)
+          4. PRITHVISETU PLACE DETAILS SIDEBAR (KNOWLEDGE PANEL)
          ==================================================== */}
       {loc && !isDirectionsOpen && (
         <div className="absolute bottom-0 left-0 right-0 sm:right-auto sm:top-20 sm:left-4 sm:bottom-6 sm:w-[408px] bg-white rounded-t-[28px] sm:rounded-3xl shadow-[0_12px_48px_rgba(0,0,0,0.35)] border border-gray-200/80 pointer-events-auto z-[1050] overflow-hidden flex flex-col max-h-[85vh] sm:max-h-none animate-slide-up">
